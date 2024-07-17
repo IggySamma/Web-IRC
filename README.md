@@ -93,3 +93,23 @@ I keep getting error that incorrect websocket connection is being made even thou
 I believe the client side websocket is not being created correctly or with correct data, possibly need to create a http server first to server the html as I wonder if the browser doesn't have access yet to the index.html?
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 3:
+
+Hello World!
+
+Everyone's first program, so only seems right.
+Got the server and client to actually write and respond to each other.
+
+My hunch yesterday was right about the server not having access to the index, I wasn't serving it correctly.
+I believe I understand how and why routes are made now.
+Was messing about with route handlers to get an idea and to confirm some pre-notions.
+
+After that, I was playing about with the tcp packet to see what I can see on the packet and to see what a tcp packet data layer looks like.
+
+Articles I was reading today to get ideas and understanding of what I'm actually doing with these libraries:
+https://www.digitalocean.com/community/tutorials/how-to-make-an-http-server-in-go
+https://blog.logrocket.com/routing-go-gorilla-mux/
+https://www.alexedwards.net/blog/interfaces-explained
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
