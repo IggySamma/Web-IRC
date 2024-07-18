@@ -36,6 +36,8 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(connection.RemoteAddr())
+
 	defer connection.Close()
 
 	for {

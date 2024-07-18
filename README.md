@@ -113,3 +113,14 @@ https://blog.logrocket.com/routing-go-gorilla-mux/
 https://www.alexedwards.net/blog/interfaces-explained
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 4:
+
+Threw together a quick front-end to be able to send and receive message from webpage instead of a forced message on open.
+Need to do server side parsing, malicious stuff and just empty {enter} keystrokes before returning.
+Need to assign users names as well as a timestamp with message most likely to be able to keep track of chat times and who sent the message.
+I think I might tackle the first instance of entering a username and keeping track of it on the connection otherwise will have to be re-write parser and stamp anyways.
+
+For the website design I was thinking of opening a modal view for the chat itself after it's selected from list, and possibly keeping memory of chat client side if accidental close while still connected to server.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
