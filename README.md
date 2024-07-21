@@ -124,3 +124,13 @@ I think I might tackle the first instance of entering a username and keeping tra
 For the website design I was thinking of opening a modal view for the chat itself after it's selected from list, and possibly keeping memory of chat client side if accidental close while still connected to server.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 5:
+
+Didn't get much done, busy with life.
+Read a bit about maps and realised I'd probably need locks on the maps.
+Read the about mutex's, read/write locks and unlocks from the sync package.
+Started building simple parser for setting username as first instance, will have message handler for all the different commands.
+Not much, but  little by little.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

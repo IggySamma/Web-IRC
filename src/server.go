@@ -7,8 +7,8 @@ import (
 
 	/*"strconv"*/
 
-	/*"os"
-	"strings"*/
+	/*"os"*/
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -26,7 +26,7 @@ func main() {
 	path := http.FileServer(http.Dir("./client"))
 	http.Handle("/", path)
 	http.HandleFunc("/ws", websocketHandler)
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	log.Println(http.ListenAndServe(":3000", nil))
 }
 
 func websocketHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +47,9 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(connection.LocalAddr())
 		fmt.Println("Received message: ", string(message))
+		parsed := messageHandler(string(message))
+		fmt.Println("Parsed message: ", string(messageHandler(string(message))))
+		fmt.Println("Parsed message ? : ", parsed)
 
 		err = connection.WriteMessage(messageType, message)
 		if err != nil {
@@ -54,4 +57,24 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+func messageHandler(message string) string {
+	if message != "" {
+		log.Println(message)
+	}
+	if strings.Contains(message, "Username: ") {
+		return addUser(message)
+	}
+	return message
+}
+
+func addUser(username string) string {
+	username = strings.TrimLeft(username, "Username: ")
+	trimmed, found := strings.CutSuffix(username, " ")
+	if !found && len(trimmed) == 0 {
+		log.Println(trimmed)
+		return "Username is blank"
+	}
+	return trimmed
 }
