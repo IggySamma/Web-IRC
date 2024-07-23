@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 
 	/*"strconv"*/
@@ -22,6 +23,8 @@ var websocketBuffer = websocket.Upgrader{
 	},
 }
 
+var usernames = make(map[net.Addr]string)
+
 func main() {
 	path := http.FileServer(http.Dir("./client"))
 	http.Handle("/", path)
@@ -37,7 +40,9 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(connection.RemoteAddr())
-
+	/*if !checkForUsername(connection.LocalAddr()) {
+		return "Enter username: "
+	}*/
 	defer connection.Close()
 
 	for {
@@ -45,13 +50,12 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Println(connection.LocalAddr())
-		fmt.Println("Received message: ", string(message))
-		parsed := messageHandler(string(message))
-		fmt.Println("Parsed message: ", string(messageHandler(string(message))))
-		fmt.Println("Parsed message ? : ", parsed)
 
-		err = connection.WriteMessage(messageType, message)
+		fmt.Println("Received message: ", string(message))
+		parsed := []byte(messageHandler(connection.LocalAddr(), string(message)))
+		fmt.Println("Parsed message : ", parsed)
+
+		err = connection.WriteMessage(messageType, parsed)
 		if err != nil {
 			log.Println(err)
 			return
@@ -59,22 +63,36 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func messageHandler(message string) string {
+func messageHandler(connection net.Addr, message string) string {
 	if message != "" {
-		log.Println(message)
+		log.Println("Failed: " + message)
+	}
+	if !checkForUsername(connection) {
+		return "Enter username: "
 	}
 	if strings.Contains(message, "Username: ") {
-		return addUser(message)
+		return setUsername(connection, message)
 	}
 	return message
 }
 
-func addUser(username string) string {
-	username = strings.TrimLeft(username, "Username: ")
-	trimmed, found := strings.CutSuffix(username, " ")
-	if !found && len(trimmed) == 0 {
-		log.Println(trimmed)
-		return "Username is blank"
+func setUsername(connection net.Addr, message string) string {
+	username := usernames[connection]
+	username = strings.TrimLeft(message, "Username: ")
+	username, found := strings.CutSuffix(username, " ")
+	if !found && len(username) == 0 {
+		log.Println(username)
+		return "Username is blank, please try again"
 	}
-	return trimmed
+	usernames[connection] = username
+
+	return "Username set as: " + username
 }
+
+func checkForUsername(connection net.Addr) bool {
+	_, check := usernames[connection]
+	return check
+}
+
+/*
+func sendMessage()*/

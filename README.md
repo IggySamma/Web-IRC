@@ -134,3 +134,11 @@ Started building simple parser for setting username as first instance, will have
 Not much, but  little by little.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 6:
+
+Working on parsing to create username for username by IP and loading into map.
+Started working on responses and re writing how messages are sent back to client but got cut short as work called for support and had to drop this for work instead.
+Hopefully get more progress done tomorrow.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
