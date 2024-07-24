@@ -142,3 +142,9 @@ Started working on responses and re writing how messages are sent back to client
 Hopefully get more progress done tomorrow.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 7:
+
+Re-organised functions a bit, re-thinking how I have the base server and message response to make it more easier to send replies rather than re-writting same codes.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
