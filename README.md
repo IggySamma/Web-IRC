@@ -152,6 +152,9 @@ Day 7:
 Day 8:
 
     Learned how GO modules and packages work through experimentation.
+    Great write up by Alex Edwards:
+    https://www.alexedwards.net/blog/an-introduction-to-packages-imports-and-modules
+
     Learn about structs work and I think I understand them a lot more now.
     Created separate package from main just to learn
     Re-organised my functions to make it easier to reply to clients.
