@@ -27,3 +27,4 @@ chat.addEventListener("submit", (event) => {
     socket.send(message.value)
     message.value = ""
 })
+

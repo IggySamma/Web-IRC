@@ -1,4 +1,4 @@
-module server
+module github.com/IggySamma/Web-IRC
 
 go 1.22.5
 
