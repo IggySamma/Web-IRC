@@ -161,3 +161,13 @@ Day 8:
     I believe I'm doing the message handler wrong but ran out of time today to test my theory that it's going to echo all users rather than single user, but need to verify.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 9:
+
+    Re-done front end a bit to get more functionality.
+    Prompt is initial for username then after success it'll open modal for chat room.
+    Usernames checks added and working for duplicates.
+    Username updates only does global message to show user updated from this to this instead of everyone seeing user’s response as well.
+    Currently working on the popover in chat if users scrolled up, want to make it that user can just click popover like on twitch or youtube and it scrolls to bottom.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

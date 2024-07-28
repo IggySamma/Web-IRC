@@ -1,14 +1,17 @@
 package ws
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
 type Server struct {
+	sync.RWMutex
 	client        map[*websocket.Conn]string
 	handleMessage func(server *Server, connection *websocket.Conn, message []byte)
 }
@@ -28,6 +31,7 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 	http.Handle("/", path)
 
 	server := Server{
+		sync.RWMutex{},
 		make(map[*websocket.Conn]string),
 		handleMessage,
 	}
@@ -40,17 +44,22 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 }
 
 func MessageHandler(server *Server, connection *websocket.Conn, message []byte) {
-	if !server.CheckForUsername(connection) {
-		server.Reply([]byte("Enter username: "))
+	if strings.Contains(string(message), "Username: ") {
+		previous := server.client[connection]
+		SetupUser(server, connection, message)
+		server.Reply([]byte(previous + string(" updated username to ") + server.client[connection]))
+	} else if server.CheckForClient(connection) && string(message) != "" {
+		server.Reply([]byte(server.client[connection] + string(": ") + string(message)))
+	}
+}
+
+func SetupUser(server *Server, connection *websocket.Conn, message []byte) {
+	if !server.CheckForClient(connection) {
+		connection.WriteMessage(websocket.TextMessage, []byte("Enter username"))
 	}
 
 	if strings.Contains(string(message), "Username: ") {
-		server.Reply([]byte(server.SetUsername(connection, message)))
-	}
-
-	if server.CheckForUsername(connection) && string(message) != "" {
-		log.Println(string(message))
-		server.Reply(message)
+		connection.WriteMessage(websocket.TextMessage, []byte(server.SetUsername(connection, message)))
 	}
 }
 
@@ -58,27 +67,46 @@ func (server *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	connection, err := WebsocketBuffer.Upgrade(w, r, nil)
 
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
 	defer connection.Close()
 
+	server.Lock()
 	server.client[connection] = ""
+	server.Unlock()
+
+	messageType, username, err := connection.ReadMessage()
+	if err != nil || messageType == websocket.CloseMessage {
+		server.ClearUser(connection)
+	}
+
+	go SetupUser(server, connection, username)
 
 	for {
 		messageType, message, err := connection.ReadMessage()
 
 		if err != nil || messageType == websocket.CloseMessage {
+			fmt.Println(err)
 			break
 		}
 
 		go server.handleMessage(server, connection, message)
 	}
 
+	server.ClearUser(connection)
+}
+
+func (server *Server) ClearUser(connection *websocket.Conn) {
+	server.Lock()
 	delete(server.client, connection)
+	server.Unlock()
+	connection.Close()
 }
 
 func (server *Server) Reply(message []byte) {
+	fmt.Println(string(message))
 	for conn := range server.client {
 		conn.WriteMessage(websocket.TextMessage, message)
 	}
@@ -89,14 +117,37 @@ func (server *Server) SetUsername(connection *websocket.Conn, message []byte) st
 	username, found := strings.CutSuffix(username, " ")
 	if !found && len(username) == 0 {
 		log.Println(username)
-		return "Username is blank, please try again"
+		return "Error: Username is blank/starts with a space. Please try again."
 	}
-	server.client[connection] = username
-
-	return "Username set as: " + username
+	if server.CheckForUsername(username) {
+		fmt.Println(username + " already set")
+		return "Error: Username already in use, please try another"
+	}
+	if server.CheckForClient(connection) {
+		server.client[connection] = username
+		return "Username updated"
+	} else {
+		server.client[connection] = username
+		fmt.Println(string("Added: ") + server.client[connection])
+		return "Success"
+	}
 }
 
-func (server *Server) CheckForUsername(connection *websocket.Conn) bool {
+func (server *Server) CheckForClient(connection *websocket.Conn) bool {
+	server.RLock()
 	check := server.client[connection]
+	server.RUnlock()
 	return check != ""
+}
+
+func (server *Server) CheckForUsername(username string) bool {
+	server.RLock()
+	for _, value := range server.client {
+		if value == username {
+			server.RUnlock()
+			return true
+		}
+	}
+	server.RUnlock()
+	return false
 }

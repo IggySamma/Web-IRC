@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Go Web IRC Chat</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="./js/bootstrap.js"></script>
+        <link rel="stylesheet" href="./styling/bootstrap.css">
+        <link rel="stylesheet" href="./styling/index.css">
+        <!--<link rel="stylesheet" href="./styling/index.css">-->
+    </head>
+    <body>
+        <div class="container-fluid">
+            <form id="liveChat">
+                <div class="contianer-fluid my-3 py-3">
+                    <div class="card" id="chat"></div>
+                </div>
+                <div class="input-group">
+                    <textarea class="form-control" id="message"></textarea>
+                    <span class="input-group-text">
+                        <button type="submit" class="btn btn-primary" id="send">Send</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </body>
+    <script src="./js/websocket.js"></script>
+</html>

@@ -1,3 +1,56 @@
 #chat{
-    height: 80vh;
+    height: 82vh;
+    overflow-y: scroll;
+    background-color: #FBFBFB;
+}
+
+body{
+    background-color: #DDDDDD;
+}
+
+#liveChat{
+    position: relative;
+    left: 1vw;
+    background-color: #DDDDDD;
+    width: 98vw;
+}
+
+.modal-content{
+    background-color: #DDDDDD;
+}
+
+#message{
+    background-color: #FBFBFB;
+}
+
+.entry{
+    width: 60%;
+    top: 25vh;
+    margin: auto;
+    text-align: center;
+    position: relative;
+    display: block;
+    justify-content: center;
+    align-items: center;
+
+}
+
+#usernameHeader{
+    font-size: 1.5rem;
+}
+
+#username{
+    width: 50%;
+    margin: auto;
+}
+
+#error{
+    font-size: 1.5rem;
+    color: red; 
+    display: none;
+}
+
+#closeBtn{
+    position: relative;
+    right: 0px;
 }

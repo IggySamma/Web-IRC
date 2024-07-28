@@ -13,17 +13,51 @@
     </head>
     <body>
         <div class="container-fluid">
-            <form id="liveChat">
-                <div class="contianer-fluid my-3 py-3">
-                    <div class="card" id="chat"></div>
+            <div class="entry">
+                <div class="welcome">
+                    <h1>Welcome to IggySamma's Web-IRC</h1>
+                    <p class="m-3 p-3">
+                        This project is for donthedevelopers mini-hackathon. 
+                        <br>
+                        Using this project as an attempt to learn some GoLang and to broaden my horizons.
+                    </p>
                 </div>
-                <div class="input-group">
-                    <textarea class="form-control" id="message"></textarea>
-                    <span class="input-group-text">
-                        <button type="submit" class="btn btn-primary" id="send">Send</button>
-                    </span>
+
+                <div class="welcomeForm mt-3 pt-3">
+                    <form id="entryUsername">
+                        <div class="form-group">
+                            <label for="username" id="usernameHeader">Please enter username:</label>
+                            <input type="text" class="form-control" id="username" placeholder="Username: ">
+                        </div>
+                    </form>
                 </div>
-            </form>
+
+                <div id="error">
+                    <p id="errorMessage">This is a test error</p>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modalView">
+                <div class="modal-dialog modal-fullscreen">
+                    <div class="modal-content">
+                        <form id="liveChat" class="position-relative">
+                            <div class="modal-header">
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeBtn"></button>
+                            </div>
+                            <div class="contianer-fluid">
+                                <div class="card" id="chat"></div>
+                            </div>
+                            <div class="input-group mt-2 mp-2">
+                                <!--<textarea class="form-control" id="message"></textarea>-->
+                                <input type="text" class="form-control" id="message" placeholder="Enter message and press enter" data-bs-placement="top" data-bs-container="body">
+                                <!--<span class="input-group-text">
+                                    <button type="submit" class="btn btn-primary" id="send">Send</button>
+                                </span>-->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
     <script src="./js/websocket.js"></script>
