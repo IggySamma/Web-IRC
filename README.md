@@ -171,3 +171,16 @@ Day 9:
     Currently working on the popover in chat if users scrolled up, want to make it that user can just click popover like on twitch or youtube and it scrolls to bottom.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 10:
+
+    Got the popover working as I wanted.
+    Worked a bit on readability when user receives its own message.
+    Hiding original username input after modal shows, will be used to hide to show channel list instead after.
+    For channels list I was thinking the following:
+        Create map like user connections. 
+        Map will hold channel name then the head pointer to linked list.
+        Linked list will hold all the users connected to the channel along with their permissions for the channel.
+    If connecting to new channel will clear modal and make it fresh, is closing and re-opening the same channel modal won't be cleared so will hold the history and should hold all new messages that came in when modal was closed.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

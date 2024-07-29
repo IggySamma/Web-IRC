@@ -47,17 +47,18 @@ func MessageHandler(server *Server, connection *websocket.Conn, message []byte) 
 	if strings.Contains(string(message), "Username: ") {
 		previous := server.client[connection]
 		SetupUser(server, connection, message)
-		server.Reply([]byte(previous + string(" updated username to ") + server.client[connection]))
+		if !(len(previous) == 0) {
+			server.Reply([]byte(previous + string(" updated username to ") + server.client[connection]))
+		}
 	} else if server.CheckForClient(connection) && string(message) != "" {
 		server.Reply([]byte(server.client[connection] + string(": ") + string(message)))
 	}
 }
 
 func SetupUser(server *Server, connection *websocket.Conn, message []byte) {
-	if !server.CheckForClient(connection) {
+	/*if !server.CheckForClient(connection) {
 		connection.WriteMessage(websocket.TextMessage, []byte("Enter username"))
-	}
-
+	} */
 	if strings.Contains(string(message), "Username: ") {
 		connection.WriteMessage(websocket.TextMessage, []byte(server.SetUsername(connection, message)))
 	}
@@ -115,21 +116,17 @@ func (server *Server) Reply(message []byte) {
 func (server *Server) SetUsername(connection *websocket.Conn, message []byte) string {
 	username := strings.TrimLeft(string(message), "Username: ")
 	username, found := strings.CutSuffix(username, " ")
+	log.Println(string(message))
 	if !found && len(username) == 0 {
 		log.Println(username)
 		return "Error: Username is blank/starts with a space. Please try again."
-	}
-	if server.CheckForUsername(username) {
+	} else if server.CheckForUsername(username) {
 		fmt.Println(username + " already set")
 		return "Error: Username already in use, please try another"
-	}
-	if server.CheckForClient(connection) {
-		server.client[connection] = username
-		return "Username updated"
 	} else {
 		server.client[connection] = username
 		fmt.Println(string("Added: ") + server.client[connection])
-		return "Success"
+		return "Username set as: " + username
 	}
 }
 

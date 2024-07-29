@@ -54,3 +54,7 @@ body{
     position: relative;
     right: 0px;
 }
+
+.channels{
+    display: none;
+}
