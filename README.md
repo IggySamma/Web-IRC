@@ -184,3 +184,10 @@ Day 10:
     If connecting to new channel will clear modal and make it fresh, is closing and re-opening the same channel modal won't be cleared so will hold the history and should hold all new messages that came in when modal was closed.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 11:
+
+    Created doubly linked list for the channels. (First time creating a linked list and was easier than I thought)
+    Need to map the linked list to the channels next and will be used for active users in channels, which users to broadcast to and check privileges for channel commands.
+    
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
