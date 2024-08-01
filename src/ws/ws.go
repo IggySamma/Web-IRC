@@ -114,7 +114,7 @@ func (server *Server) Reply(message []byte) {
 }
 
 func (server *Server) SetUsername(connection *websocket.Conn, message []byte) string {
-	username := strings.TrimLeft(string(message), "Username: ")
+	username := strings.TrimPrefix(string(message), "Username: ")
 	username, found := strings.CutSuffix(username, " ")
 	log.Println(string(message))
 	if !found && len(username) == 0 {

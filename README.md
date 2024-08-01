@@ -191,3 +191,10 @@ Day 11:
     Need to map the linked list to the channels next and will be used for active users in channels, which users to broadcast to and check privileges for channel commands.
     
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 12:
+
+    Started working on linking the channels with linked list for users.
+    Didn't have much time today to do coding
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

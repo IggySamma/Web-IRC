@@ -1,5 +1,7 @@
 package ws
 
+import "sync"
+
 /*
 	type Channel struct {
 		channel map[string]*LinkedList
@@ -14,6 +16,11 @@ type Node struct {
 
 type LinkedList struct {
 	head *Node
+}
+
+type Channel struct {
+	sync.RWMutex
+	channel map[string]*LinkedList
 }
 
 func (list *LinkedList) Insert(user string, privileges string) {
@@ -80,4 +87,25 @@ func GetUsersInChannel(list *LinkedList) string {
 		current = current.next
 	}
 	return result
+}
+
+func (c *Channel) CreateChannel(channelName string, username string) string {
+	c.Lock()
+	defer c.Unlock()
+	if _, check := c.channel[channelName]; check {
+		return string("Channel already exists")
+	}
+
+	c.channel[channelName] = &LinkedList{}
+	c.channel[channelName].head.user = username
+	c.channel[channelName].head.privilege = string("Admin")
+	return string("Channel added")
+}
+
+func (c *Channel) DeleteChannel(channelName string, privilege string) string {
+	if privilege != string("Admin") {
+		return string("Not enough privileges to delete the channel")
+	}
+	delete(c.channel, channelName)
+	return string("Channel deleted")
 }
