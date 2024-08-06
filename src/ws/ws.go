@@ -36,14 +36,32 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 		handleMessage,
 	}
 
-	http.HandleFunc("/ws", server.WebsocketHandler)
+	channels := &Channel{
+		sync.RWMutex{},
+		make(map[string]*LinkedList),
+	}
 
-	go http.ListenAndServe(":3000", nil)
+	err := channels.CreateChannel(string("Global"), string(""))
+	if err != string("Channel added") {
+		fmt.Println(err)
+	}
+
+	http.HandleFunc("/ws", server.WebsocketHandler)
+	http.HandleFunc("/channels", server.Reply([]byte(channels.GetChannels())))
+
+	go func() {
+		if err := http.ListenAndServe(":3000", nil); err != nil {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
 
 	return &server
 }
 
 func MessageHandler(server *Server, connection *websocket.Conn, message []byte) {
+	/*if(string(message) == "Request channels"){
+		server.Reply()
+	}*/
 	if strings.Contains(string(message), "Username: ") {
 		previous := server.client[connection]
 		SetupUser(server, connection, message)

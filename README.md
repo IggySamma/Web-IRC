@@ -195,6 +195,14 @@ Day 11:
 Day 12:
 
     Started working on linking the channels with linked list for users.
-    Didn't have much time today to do coding
+    Didn't have much time today to do coding.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 13:
+
+    Fixed nil pointer dereference from Day 12 as I didn't test that code since I was so rushed.
+    Trying to get the channels to work, might read some articles of how people are handling this as I might be going about it the wrong way.
+
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

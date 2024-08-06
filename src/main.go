@@ -1,13 +1,21 @@
 package main
 
 import (
+	"log"
+
 	"github.com/IggySamma/Web-IRC/ws"
 )
 
 func main() {
-	ws.StartServer(ws.MessageHandler)
-	channels := &ws.Channel{channel: make(map[string]*ws.LinkedList)}
+	server := ws.StartServer(ws.MessageHandler)
 
-	for {
+	if server == nil {
+		log.Fatal("Failed to start the server")
+		return
 	}
+
+	log.Println("Server started...")
+
+	// Block the main function indefinitely
+	select {}
 }

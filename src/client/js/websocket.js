@@ -1,4 +1,5 @@
 const socket = new WebSocket('ws:' + window.location.href.replace("http://","") + 'ws');
+let channels;
 const modal = new bootstrap.Modal(document.getElementById("modalView"), {
     backdrop: "static",
     focus: true,
@@ -73,7 +74,11 @@ function messageHandler(message){
         entryError.style.display = "block";
     } else if (message.includes("Username set as:")){
         user = message.slice(17)
-        modal.show();
+        /*socket.send("Request channels")*/
+        console.log(message)
+        entryForm("hide");
+
+        //modal.show();
     } else {
         if((chat.scrollTop + chat.clientHeight) === chat.scrollHeight){
             insert("p",{},"",message, isUser(message))
@@ -87,6 +92,16 @@ function messageHandler(message){
 
 function isUser(message){
     return message.slice(0, message.indexOf(":")) === user
+}
+
+function entryForm(display){
+    if(display === 'show'){
+        if (entry.style.display === 'none'){
+            entry.style.display = 'block';
+        } 
+    } else {
+        entry.style.display = 'none'
+    }
 }
 
 getModal.addEventListener('shown.bs.modal', () => {

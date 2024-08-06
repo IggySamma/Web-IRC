@@ -89,6 +89,17 @@ func GetUsersInChannel(list *LinkedList) string {
 	return result
 }
 
+func (c *Channel) GetChannels() string {
+	c.RLock()
+	defer c.RUnlock()
+	for channels, _ := range c.channel {
+		if channels != "" {
+			return channels
+		}
+	}
+	return ""
+}
+
 func (c *Channel) CreateChannel(channelName string, username string) string {
 	c.Lock()
 	defer c.Unlock()
@@ -97,9 +108,15 @@ func (c *Channel) CreateChannel(channelName string, username string) string {
 	}
 
 	c.channel[channelName] = &LinkedList{}
-	c.channel[channelName].head.user = username
-	c.channel[channelName].head.privilege = string("Admin")
-	return string("Channel added")
+	if username != "" {
+		c.channel[channelName].head = &Node{
+			user:      username,
+			privilege: "Admin",
+		}
+	} else {
+		c.channel[channelName].head = &Node{}
+	}
+	return "Channel added"
 }
 
 func (c *Channel) DeleteChannel(channelName string, privilege string) string {
