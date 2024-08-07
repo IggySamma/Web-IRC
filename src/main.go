@@ -16,6 +16,6 @@ func main() {
 
 	log.Println("Server started...")
 
-	// Block the main function indefinitely
-	select {}
+	for {
+	}
 }

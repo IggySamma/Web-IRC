@@ -206,3 +206,17 @@ Day 13:
 
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 14:
+
+    Got channels working, now part of server struct.
+    Redone the reply so can be to individual and then new ReplyAll to reply to all connections.
+    Fixed messages to be taken in as strings instead of array of chars 
+    Same thing in principal but it's easier to put the message in string() at the message handler instead of writing out []byte(message) everytime for Reply() and ReplyAll().
+    Need to fix GetChannels(), need to create array, push to array then return the array instead of the loop I have now since it's only sending single message.
+    I thought it would return like a recursive function but obviously I haven't called or made it like a correct recursive function.
+    Main function is now working, after fixing GetChannels() I will need to create front end to take the channels display them, on select it will join to that channel.
+    Once that's working, it'll be foundation to get everything else in place as will just be different methods attached to the channels and some message parsing which I might fo a switch statement for instead of if statements to make it more readable. 
+    Need to look into switch statements in GoLang if that's the case.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

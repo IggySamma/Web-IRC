@@ -76,9 +76,9 @@ function messageHandler(message){
         user = message.slice(17)
         /*socket.send("Request channels")*/
         console.log(message)
-        entryForm("hide");
+        //entryForm("hide");
 
-        //modal.show();
+        modal.show();
     } else {
         if((chat.scrollTop + chat.clientHeight) === chat.scrollHeight){
             insert("p",{},"",message, isUser(message))

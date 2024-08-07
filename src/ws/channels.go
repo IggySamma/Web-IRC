@@ -92,7 +92,7 @@ func GetUsersInChannel(list *LinkedList) string {
 func (c *Channel) GetChannels() string {
 	c.RLock()
 	defer c.RUnlock()
-	for channels, _ := range c.channel {
+	for channels := range c.channel {
 		if channels != "" {
 			return channels
 		}
@@ -100,7 +100,7 @@ func (c *Channel) GetChannels() string {
 	return ""
 }
 
-func (c *Channel) CreateChannel(channelName string, username string) string {
+func (c *Channel) AddChannel(channelName string, username string) string {
 	c.Lock()
 	defer c.Unlock()
 	if _, check := c.channel[channelName]; check {

@@ -14,6 +14,7 @@ type Server struct {
 	sync.RWMutex
 	client        map[*websocket.Conn]string
 	handleMessage func(server *Server, connection *websocket.Conn, message []byte)
+	channel       *Channel
 }
 
 var WebsocketBuffer = websocket.Upgrader{
@@ -30,24 +31,24 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 
 	http.Handle("/", path)
 
-	server := Server{
-		sync.RWMutex{},
-		make(map[*websocket.Conn]string),
-		handleMessage,
-	}
-
 	channels := &Channel{
 		sync.RWMutex{},
 		make(map[string]*LinkedList),
 	}
 
-	err := channels.CreateChannel(string("Global"), string(""))
-	if err != string("Channel added") {
-		fmt.Println(err)
+	server := &Server{
+		client:        make(map[*websocket.Conn]string),
+		handleMessage: handleMessage,
+		channel:       channels,
 	}
+	/* testing*/
+	server.channel.AddChannel("Global 1", "")
+	server.channel.AddChannel("Global 2", "")
+	server.channel.AddChannel("Global 3", "")
+	server.channel.AddChannel("Global 4", "")
+	server.channel.AddChannel("Global 5", "")
 
 	http.HandleFunc("/ws", server.WebsocketHandler)
-	http.HandleFunc("/channels", server.Reply([]byte(channels.GetChannels())))
 
 	go func() {
 		if err := http.ListenAndServe(":3000", nil); err != nil {
@@ -55,30 +56,31 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 		}
 	}()
 
-	return &server
+	return server
 }
 
 func MessageHandler(server *Server, connection *websocket.Conn, message []byte) {
-	/*if(string(message) == "Request channels"){
-		server.Reply()
-	}*/
+	if string(message) == "Request channels" {
+		channels := server.channel.GetChannels()
+		server.Reply(connection, channels)
+	}
 	if strings.Contains(string(message), "Username: ") {
 		previous := server.client[connection]
-		SetupUser(server, connection, message)
+		go server.SetupUser(connection, string(message))
 		if !(len(previous) == 0) {
-			server.Reply([]byte(previous + string(" updated username to ") + server.client[connection]))
+			server.Reply(connection, previous+string(" updated username to ")+server.client[connection])
 		}
 	} else if server.CheckForClient(connection) && string(message) != "" {
-		server.Reply([]byte(server.client[connection] + string(": ") + string(message)))
+		server.ReplyAll(server.client[connection] + ": " + string(message))
 	}
 }
 
-func SetupUser(server *Server, connection *websocket.Conn, message []byte) {
+func (server *Server) SetupUser(connection *websocket.Conn, message string) {
 	/*if !server.CheckForClient(connection) {
 		connection.WriteMessage(websocket.TextMessage, []byte("Enter username"))
-	} */
+	}*/
 	if strings.Contains(string(message), "Username: ") {
-		connection.WriteMessage(websocket.TextMessage, []byte(server.SetUsername(connection, message)))
+		server.Reply(connection, server.SetUsername(connection, message))
 	}
 }
 
@@ -95,13 +97,6 @@ func (server *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	server.Lock()
 	server.client[connection] = ""
 	server.Unlock()
-
-	messageType, username, err := connection.ReadMessage()
-	if err != nil || messageType == websocket.CloseMessage {
-		server.ClearUser(connection)
-	}
-
-	go SetupUser(server, connection, username)
 
 	for {
 		messageType, message, err := connection.ReadMessage()
@@ -124,17 +119,22 @@ func (server *Server) ClearUser(connection *websocket.Conn) {
 	connection.Close()
 }
 
-func (server *Server) Reply(message []byte) {
+func (server *Server) Reply(connection *websocket.Conn, message string) {
+	fmt.Println(message)
+	connection.WriteMessage(websocket.TextMessage, []byte(message))
+}
+
+func (server *Server) ReplyAll(message string) {
 	fmt.Println(string(message))
 	for conn := range server.client {
-		conn.WriteMessage(websocket.TextMessage, message)
+		conn.WriteMessage(websocket.TextMessage, []byte(message))
 	}
 }
 
-func (server *Server) SetUsername(connection *websocket.Conn, message []byte) string {
-	username := strings.TrimPrefix(string(message), "Username: ")
+func (server *Server) SetUsername(connection *websocket.Conn, message string) string {
+	username := strings.TrimPrefix(message, "Username: ")
 	username, found := strings.CutSuffix(username, " ")
-	log.Println(string(message))
+	log.Println(message)
 	if !found && len(username) == 0 {
 		log.Println(username)
 		return "Error: Username is blank/starts with a space. Please try again."
