@@ -60,27 +60,21 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 }
 
 func MessageHandler(server *Server, connection *websocket.Conn, message []byte) {
-	if string(message) == "Request channels" {
+	fmt.Println("Raw Message: " + string(message))
+	if string(message) == "/Request channels" {
 		channels := server.channel.GetChannels()
 		server.Reply(connection, channels)
-	}
-	if strings.Contains(string(message), "Username: ") {
+	} else if strings.HasPrefix(string(message), "/Username:") {
+		//else if strings.Contains(string(message), "Username: ") {
 		previous := server.client[connection]
 		go server.SetupUser(connection, string(message))
 		if !(len(previous) == 0) {
 			server.Reply(connection, previous+string(" updated username to ")+server.client[connection])
 		}
+	} else if strings.HasPrefix(string(message), "/Join:") {
+		server.Reply(connection, "Join channel: ")
 	} else if server.CheckForClient(connection) && string(message) != "" {
 		server.ReplyAll(server.client[connection] + ": " + string(message))
-	}
-}
-
-func (server *Server) SetupUser(connection *websocket.Conn, message string) {
-	/*if !server.CheckForClient(connection) {
-		connection.WriteMessage(websocket.TextMessage, []byte("Enter username"))
-	}*/
-	if strings.Contains(string(message), "Username: ") {
-		server.Reply(connection, server.SetUsername(connection, message))
 	}
 }
 
@@ -112,13 +106,6 @@ func (server *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	server.ClearUser(connection)
 }
 
-func (server *Server) ClearUser(connection *websocket.Conn) {
-	server.Lock()
-	delete(server.client, connection)
-	server.Unlock()
-	connection.Close()
-}
-
 func (server *Server) Reply(connection *websocket.Conn, message string) {
 	fmt.Println(message)
 	connection.WriteMessage(websocket.TextMessage, []byte(message))
@@ -131,22 +118,7 @@ func (server *Server) ReplyAll(message string) {
 	}
 }
 
-func (server *Server) SetUsername(connection *websocket.Conn, message string) string {
-	username := strings.TrimPrefix(message, "Username: ")
-	username, found := strings.CutSuffix(username, " ")
-	log.Println(message)
-	if !found && len(username) == 0 {
-		log.Println(username)
-		return "Error: Username is blank/starts with a space. Please try again."
-	} else if server.CheckForUsername(username) {
-		fmt.Println(username + " already set")
-		return "Error: Username already in use, please try another"
-	} else {
-		server.client[connection] = username
-		fmt.Println(string("Added: ") + server.client[connection])
-		return "Username set as: " + username
-	}
-}
+/* Setting up user */
 
 func (server *Server) CheckForClient(connection *websocket.Conn) bool {
 	server.RLock()
@@ -165,4 +137,37 @@ func (server *Server) CheckForUsername(username string) bool {
 	}
 	server.RUnlock()
 	return false
+}
+
+func (server *Server) SetupUser(connection *websocket.Conn, message string) {
+	/*if !server.CheckForClient(connection) {
+		connection.WriteMessage(websocket.TextMessage, []byte("Enter username"))
+	}*/
+	if strings.HasPrefix(string(message), "/Username: ") {
+		server.Reply(connection, server.SetUsername(connection, message))
+	}
+}
+
+func (server *Server) ClearUser(connection *websocket.Conn) {
+	server.Lock()
+	delete(server.client, connection)
+	server.Unlock()
+	connection.Close()
+}
+
+func (server *Server) SetUsername(connection *websocket.Conn, message string) string {
+	username := strings.TrimPrefix(message, "/Username: ")
+	username, found := strings.CutSuffix(username, " ")
+	log.Println(message)
+	if !found && len(username) == 0 {
+		log.Println(username)
+		return "Username Error: Username is blank/starts with a space. Please try again."
+	} else if server.CheckForUsername(username) {
+		fmt.Println(username + " already set")
+		return "Username Error: Username already in use, please try another"
+	} else {
+		server.client[connection] = username
+		fmt.Println(string("Added: ") + server.client[connection])
+		return "Username set as: " + username
+	}
 }

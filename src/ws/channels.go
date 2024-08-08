@@ -1,6 +1,9 @@
 package ws
 
-import "sync"
+import (
+	"strings"
+	"sync"
+)
 
 /*
 	type Channel struct {
@@ -92,12 +95,18 @@ func GetUsersInChannel(list *LinkedList) string {
 func (c *Channel) GetChannels() string {
 	c.RLock()
 	defer c.RUnlock()
-	for channels := range c.channel {
-		if channels != "" {
-			return channels
-		}
+	/*
+		for channels := range c.channel {
+			if channels != "" {
+				return channels
+			}
+		}*/
+	var channels []string
+	for temp := range c.channel {
+		channels = append(channels, temp)
 	}
-	return ""
+
+	return "Channels: " + strings.Join(channels, ",")
 }
 
 func (c *Channel) AddChannel(channelName string, username string) string {

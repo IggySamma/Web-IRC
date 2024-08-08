@@ -220,3 +220,15 @@ Day 14:
     Need to look into switch statements in GoLang if that's the case.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 15:
+
+    Fixed GetChannels().
+    Updated server side message parsing to do prefix instead of contains as works can be used in regular messages.
+    Front end channels now being added as buttons.
+    Buttons send message with channel name.
+    Need to now change to only send messages to users in the channels selected.
+    Parse for user privileges to join channel.
+    Need to add functions for users to add channels.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
