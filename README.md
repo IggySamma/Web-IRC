@@ -232,3 +232,15 @@ Day 15:
     Need to add functions for users to add channels.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 16:
+
+    Core functionallity is working ! :D
+    Hashed passwords for channels stored and working for connecting
+    Channels now working correctly.
+    Each channel replies only to it's own channels.
+    Something broke for error receiving on front end need to double check why it's not displaying the errors anymore.
+    Need to remove users from channels list after they leave, as it'll still be there right now even if user disconnects.
+    Need to make modal close be channels list instead of username login as wont allow use to use /Username to update to the same since name already exists.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

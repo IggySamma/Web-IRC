@@ -32,8 +32,8 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 	http.Handle("/", path)
 
 	channels := &Channel{
-		sync.RWMutex{},
-		make(map[string]*LinkedList),
+		channel:  make(map[string]*LinkedList),
+		password: make(map[string]uint32),
 	}
 
 	server := &Server{
@@ -42,11 +42,11 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 		channel:       channels,
 	}
 	/* testing*/
-	server.channel.AddChannel("Global 1", "")
-	server.channel.AddChannel("Global 2", "")
-	server.channel.AddChannel("Global 3", "")
-	server.channel.AddChannel("Global 4", "")
-	server.channel.AddChannel("Global 5", "")
+	server.channel.AddChannel("Global 1", "", "test")
+	server.channel.AddChannel("Global 2", "", "")
+	server.channel.AddChannel("Global 3", "", "")
+	server.channel.AddChannel("Global 4", "", "")
+	server.channel.AddChannel("Global 5", "", "")
 
 	http.HandleFunc("/ws", server.WebsocketHandler)
 
@@ -72,9 +72,40 @@ func MessageHandler(server *Server, connection *websocket.Conn, message []byte) 
 			server.Reply(connection, previous+string(" updated username to ")+server.client[connection])
 		}
 	} else if strings.HasPrefix(string(message), "/Join:") {
-		server.Reply(connection, "Join channel: ")
-	} else if server.CheckForClient(connection) && string(message) != "" {
-		server.ReplyAll(server.client[connection] + ": " + string(message))
+		user := server.GetUsername(connection)
+		reply := ""
+		if user != "" {
+			reply = server.channel.InserUserToChannel(strings.TrimPrefix(string(message), "/Join: "), user, "")
+			server.Reply(connection, reply)
+		}
+		//server.Reply(connection, "Join channel: "+string(message))
+	} else if strings.HasPrefix(string(message), "/Password:/Channel:") {
+		user := server.GetUsername(connection)
+
+		reply := server.channel.InserUserToChannel(
+			MessageDelim(
+				strings.TrimLeft(
+					strings.TrimPrefix(
+						string(message), "/Password:/Channel:"),
+					":"),
+				":",
+				"Left"),
+			user,
+			MessageDelim(
+				strings.TrimLeft(
+					strings.TrimPrefix(
+						string(message),
+						"/Password:/Channel:"),
+					":"),
+				":",
+				"Right"))
+
+		if user != "" {
+			server.Reply(connection, reply)
+		}
+	} else if server.CheckForClient(connection) && strings.HasPrefix(string(message), "/Channel:") {
+		server.ReplyAll(MessageDelim(strings.TrimPrefix(string(message), "/Channel:"), ":", "Right"),
+			server.client[connection]+": "+MessageDelim(strings.TrimPrefix(string(message), "/Channel:"), ":", "Left"))
 	}
 }
 
@@ -111,10 +142,44 @@ func (server *Server) Reply(connection *websocket.Conn, message string) {
 	connection.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
-func (server *Server) ReplyAll(message string) {
-	fmt.Println(string(message))
-	for conn := range server.client {
-		conn.WriteMessage(websocket.TextMessage, []byte(message))
+func (server *Server) ReplyAll(channel string, message string) {
+	fmt.Println("Sending message to channel:", channel)
+	list, exists := server.channel.channel[channel]
+
+	fmt.Println(server.channel.channel)
+	fmt.Println(server.channel.channel["Global 3"])
+
+	if !exists {
+		fmt.Println("Channel does not exist")
+		return
+	}
+
+	if list == nil {
+		fmt.Println("List is nil")
+		return
+	}
+
+	list.RLock()
+	defer list.RUnlock()
+
+	users := GetUsersInChannel(list)
+	if users == "" {
+		fmt.Println("No users in the channel")
+		return
+	}
+
+	fmt.Println("Users in channel:", users)
+
+	for _, username := range strings.Split(users, ",") {
+		username = strings.TrimSpace(username)
+		if username != "" {
+			conn := server.RetriveConnectionFromUsername(username)
+			if conn != nil {
+				if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+					log.Printf("Failed to send message to %s: %v", username, err)
+				}
+			}
+		}
 	}
 }
 
@@ -127,6 +192,16 @@ func (server *Server) CheckForClient(connection *websocket.Conn) bool {
 	return check != ""
 }
 
+func (server *Server) RetriveConnectionFromUsername(username string) (key *websocket.Conn) {
+	for k, value := range server.client {
+		if value == username {
+			key = k
+			return
+		}
+	}
+	return
+}
+
 func (server *Server) CheckForUsername(username string) bool {
 	server.RLock()
 	for _, value := range server.client {
@@ -137,6 +212,17 @@ func (server *Server) CheckForUsername(username string) bool {
 	}
 	server.RUnlock()
 	return false
+}
+
+func (server *Server) GetUsername(connection *websocket.Conn) string {
+	server.RLock()
+	defer server.RUnlock()
+	temp := server.client
+	user, err := temp[connection]
+	if !err {
+		return ""
+	}
+	return user
 }
 
 func (server *Server) SetupUser(connection *websocket.Conn, message string) {
@@ -170,4 +256,15 @@ func (server *Server) SetUsername(connection *websocket.Conn, message string) st
 		fmt.Println(string("Added: ") + server.client[connection])
 		return "Username set as: " + username
 	}
+}
+
+func MessageDelim(message string, delim string, direction string) string {
+	if idx := strings.Index(message, delim); idx != -1 {
+		if direction == "Right" {
+			return message[:idx]
+		} else {
+			return message[idx+1:]
+		}
+	}
+	return message
 }

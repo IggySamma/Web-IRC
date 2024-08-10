@@ -1,15 +1,11 @@
 package ws
 
 import (
+	"hash/fnv"
 	"strings"
 	"sync"
 )
 
-/*
-	type Channel struct {
-		channel map[string]*LinkedList
-	}
-*/
 type Node struct {
 	user      string
 	privilege string
@@ -18,12 +14,14 @@ type Node struct {
 }
 
 type LinkedList struct {
+	sync.RWMutex
 	head *Node
 }
 
 type Channel struct {
 	sync.RWMutex
-	channel map[string]*LinkedList
+	channel  map[string]*LinkedList
+	password map[string]uint32
 }
 
 func (list *LinkedList) Insert(user string, privileges string) {
@@ -61,7 +59,7 @@ func (list *LinkedList) DeleteUserFromChannel(user string) {
 
 	if current == list.head {
 		list.head = current.next
-		if list.head.previous != nil {
+		if list.head != nil {
 			list.head.previous = nil
 		}
 		return
@@ -93,8 +91,6 @@ func GetUsersInChannel(list *LinkedList) string {
 }
 
 func (c *Channel) GetChannels() string {
-	c.RLock()
-	defer c.RUnlock()
 	/*
 		for channels := range c.channel {
 			if channels != "" {
@@ -109,14 +105,13 @@ func (c *Channel) GetChannels() string {
 	return "Channels: " + strings.Join(channels, ",")
 }
 
-func (c *Channel) AddChannel(channelName string, username string) string {
-	c.Lock()
-	defer c.Unlock()
+func (c *Channel) AddChannel(channelName string, username string, password string) string {
 	if _, check := c.channel[channelName]; check {
-		return string("Channel already exists")
+		return "Channel already exists"
 	}
 
-	c.channel[channelName] = &LinkedList{}
+	c.channel[channelName] = &LinkedList{head: nil}
+	c.password[channelName] = HashPass(password)
 	if username != "" {
 		c.channel[channelName].head = &Node{
 			user:      username,
@@ -134,4 +129,59 @@ func (c *Channel) DeleteChannel(channelName string, privilege string) string {
 	}
 	delete(c.channel, channelName)
 	return string("Channel deleted")
+}
+
+func HashPass(input string) uint32 {
+	temp := fnv.New32a()
+	temp.Write([]byte(input))
+	return temp.Sum32()
+}
+
+func (c *Channel) InserUserToChannel(channel string, user string, password string) string {
+	c.Lock()
+	defer c.Unlock()
+	/*This is an IRC not a banking app so should be enough*/
+	if c.password[channel] != HashPass("") && c.password[channel] != HashPass(password) {
+		return "Enter password."
+	}
+
+	list := c.channel[channel].head
+
+	if list == nil {
+		return "Channel doesn't exist."
+	}
+
+	for list.next != nil {
+		list = list.next
+	}
+	newNode := &Node{
+		user:      user,
+		privilege: "User",
+		previous:  list,
+	}
+	list.next = newNode
+
+	return "Joined " + channel
+}
+
+func (c *Channel) RemoveUserFromChannel(channel string, user string) {
+	list := c.channel[channel].head
+
+	for list.user != user {
+		if list.next != nil {
+			list = list.next
+		}
+	}
+
+	if list == c.channel[channel].head {
+		c.channel[channel].head = list.next
+		return
+	} else if list.next == nil {
+		list.previous.next = nil
+		return
+	} else {
+		list.previous.next = list.next
+		list.next.previous = list.previous.previous
+	}
+
 }

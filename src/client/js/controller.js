@@ -56,7 +56,11 @@ function popupTrigger(){
 chatForm.addEventListener("submit", (event) => {
     event.preventDefault(); 
     let message = document.getElementById("message");
-    socket.send(message.value);
+    if(previous.includes("Enter password")){
+        socket.send("/Password:/Channel:" + message.value + ":" + jchannel)
+    } else {
+        socket.send("/Channel:" + jchannel + ":" + message.value);
+    }
     message.value = "";
 });
 
@@ -101,6 +105,7 @@ function insertChannels(channels){
     for(let i = 0; i < buttons.length; i++){
         buttons[i].addEventListener("click", (event) => {
             event.preventDefault();
+            jchannel = event.srcElement.innerText;
             socket.send("/Join: " + event.srcElement.innerText);
         })
     };
