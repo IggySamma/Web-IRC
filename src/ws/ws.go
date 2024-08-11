@@ -51,7 +51,7 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 	http.HandleFunc("/ws", server.WebsocketHandler)
 
 	go func() {
-		if err := http.ListenAndServe(":3000", nil); err != nil {
+		if err := http.ListenAndServe(":80", nil); err != nil {
 			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
@@ -60,33 +60,36 @@ func StartServer(handleMessage func(server *Server, connection *websocket.Conn, 
 }
 
 func MessageHandler(server *Server, connection *websocket.Conn, message []byte) {
-	fmt.Println("Raw Message: " + string(message))
-	if string(message) == "/Request channels" {
+	smessage := string(message)
+	fmt.Println("Raw Message: " + smessage)
+
+	if smessage == "/Request channels" {
 		channels := server.channel.GetChannels()
 		server.Reply(connection, channels)
-	} else if strings.HasPrefix(string(message), "/Username:") {
-		//else if strings.Contains(string(message), "Username: ") {
+	} else if strings.HasPrefix(smessage, "/Username:") {
+		//else if strings.Contains(smessage, "Username: ") {
 		previous := server.client[connection]
-		go server.SetupUser(connection, string(message))
+		go server.SetupUser(connection, smessage)
 		if !(len(previous) == 0) {
 			server.Reply(connection, previous+string(" updated username to ")+server.client[connection])
 		}
-	} else if strings.HasPrefix(string(message), "/Join:") {
+	} else if strings.HasPrefix(smessage, "/Join:") {
 		user := server.GetUsername(connection)
+		fmt.Println(user)
 		reply := ""
 		if user != "" {
-			reply = server.channel.InserUserToChannel(strings.TrimPrefix(string(message), "/Join: "), user, "")
+			reply = server.channel.InserUserToChannel(strings.TrimPrefix(smessage, "/Join: "), user, "")
 			server.Reply(connection, reply)
 		}
-		//server.Reply(connection, "Join channel: "+string(message))
-	} else if strings.HasPrefix(string(message), "/Password:/Channel:") {
+		//server.Reply(connection, "Join channel: "+smessage)
+	} else if strings.HasPrefix(smessage, "/Password:/Channel:") {
 		user := server.GetUsername(connection)
 
 		reply := server.channel.InserUserToChannel(
 			MessageDelim(
 				strings.TrimLeft(
 					strings.TrimPrefix(
-						string(message), "/Password:/Channel:"),
+						smessage, "/Password:/Channel:"),
 					":"),
 				":",
 				"Left"),
@@ -94,7 +97,7 @@ func MessageHandler(server *Server, connection *websocket.Conn, message []byte) 
 			MessageDelim(
 				strings.TrimLeft(
 					strings.TrimPrefix(
-						string(message),
+						smessage,
 						"/Password:/Channel:"),
 					":"),
 				":",
@@ -103,9 +106,51 @@ func MessageHandler(server *Server, connection *websocket.Conn, message []byte) 
 		if user != "" {
 			server.Reply(connection, reply)
 		}
-	} else if server.CheckForClient(connection) && strings.HasPrefix(string(message), "/Channel:") {
-		server.ReplyAll(MessageDelim(strings.TrimPrefix(string(message), "/Channel:"), ":", "Right"),
-			server.client[connection]+": "+MessageDelim(strings.TrimPrefix(string(message), "/Channel:"), ":", "Left"))
+	} else if strings.HasPrefix(smessage, "/Disconnect:") {
+		server.channel.RemoveUserFromChannel(MessageDelim(smessage, ":", "Left"), server.client[connection])
+	} else if strings.HasPrefix(smessage, "/Users:") {
+		fmt.Println(MessageDelim(MessageDelim(smessage, ":", "Left"), ":", "Left"))
+		list, exists := server.channel.channel[MessageDelim(MessageDelim(smessage, ":", "Left"), ":", "Left")]
+		if !exists {
+			fmt.Println("Channel does not exist")
+			return
+		}
+		if list == nil {
+			fmt.Println("List is nil")
+			return
+		}
+		users := GetUsersInChannel(list)
+		server.Reply(connection, "Users:"+users)
+	} else if strings.HasPrefix(smessage, "/Kick:") {
+		fmt.Println("Kicked")
+		server.channel.RemoveUserFromChannel(
+			MessageDelim(
+				MessageDelim(
+					MessageDelim(smessage, ":", "Left"),
+					":", "Left"),
+				":", "Right"),
+			MessageDelim(
+				MessageDelim(
+					MessageDelim(smessage, ":", "Left"),
+					":", "Left"),
+				":", "Left"))
+
+		server.ReplyAll(MessageDelim(
+			MessageDelim(
+				MessageDelim(smessage, ":", "Left"),
+				":", "Left"),
+			":", "Right"),
+			MessageDelim(
+				MessageDelim(
+					MessageDelim(smessage, ":", "Left"),
+					":", "Left"),
+				":", "Left")+" has been kicked from the channel")
+
+	} else if len(strings.TrimSpace(smessage)) == 0 {
+		server.Reply(connection, "Please enter a message to broadcast to everyone")
+	} else if server.CheckForClient(connection) && strings.HasPrefix(smessage, "/Channel:") {
+		server.ReplyAll(MessageDelim(strings.TrimPrefix(smessage, "/Channel:"), ":", "Right"),
+			server.client[connection]+": "+MessageDelim(strings.TrimPrefix(smessage, "/Channel:"), ":", "Left"))
 	}
 }
 
@@ -138,16 +183,12 @@ func (server *Server) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) Reply(connection *websocket.Conn, message string) {
-	fmt.Println(message)
 	connection.WriteMessage(websocket.TextMessage, []byte(message))
 }
 
 func (server *Server) ReplyAll(channel string, message string) {
 	fmt.Println("Sending message to channel:", channel)
 	list, exists := server.channel.channel[channel]
-
-	fmt.Println(server.channel.channel)
-	fmt.Println(server.channel.channel["Global 3"])
 
 	if !exists {
 		fmt.Println("Channel does not exist")
@@ -158,11 +199,12 @@ func (server *Server) ReplyAll(channel string, message string) {
 		fmt.Println("List is nil")
 		return
 	}
-
-	list.RLock()
-	defer list.RUnlock()
-
+	/*
+		list.RLock()
+		defer list.RUnlock()
+	*/
 	users := GetUsersInChannel(list)
+	fmt.Println("Reply all users: " + users)
 	if users == "" {
 		fmt.Println("No users in the channel")
 		return
@@ -235,18 +277,14 @@ func (server *Server) SetupUser(connection *websocket.Conn, message string) {
 }
 
 func (server *Server) ClearUser(connection *websocket.Conn) {
-	server.Lock()
 	delete(server.client, connection)
-	server.Unlock()
 	connection.Close()
 }
 
 func (server *Server) SetUsername(connection *websocket.Conn, message string) string {
 	username := strings.TrimPrefix(message, "/Username: ")
 	username, found := strings.CutSuffix(username, " ")
-	log.Println(message)
 	if !found && len(username) == 0 {
-		log.Println(username)
 		return "Username Error: Username is blank/starts with a space. Please try again."
 	} else if server.CheckForUsername(username) {
 		fmt.Println(username + " already set")

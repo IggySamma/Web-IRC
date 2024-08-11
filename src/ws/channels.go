@@ -1,7 +1,9 @@
 package ws
 
 import (
+	"fmt"
 	"hash/fnv"
+	"log"
 	"strings"
 	"sync"
 )
@@ -144,22 +146,33 @@ func (c *Channel) InserUserToChannel(channel string, user string, password strin
 	if c.password[channel] != HashPass("") && c.password[channel] != HashPass(password) {
 		return "Enter password."
 	}
+	fmt.Println("1")
+	exists := GetUsersInChannel(c.channel[channel])
+	for _, username := range strings.Split(exists, ",") {
+		username = strings.TrimSpace(username)
+		if username == user {
+			c.RemoveUserFromChannel(channel, user)
+			log.Println(username + " removed from channel")
+		}
+	}
 
 	list := c.channel[channel].head
-
+	fmt.Println("2")
 	if list == nil {
 		return "Channel doesn't exist."
 	}
-
+	fmt.Println("3")
 	for list.next != nil {
 		list = list.next
 	}
+	fmt.Println("4")
 	newNode := &Node{
 		user:      user,
 		privilege: "User",
 		previous:  list,
 	}
 	list.next = newNode
+	fmt.Println("5")
 
 	return "Joined " + channel
 }
@@ -173,15 +186,22 @@ func (c *Channel) RemoveUserFromChannel(channel string, user string) {
 		}
 	}
 
-	if list == c.channel[channel].head {
-		c.channel[channel].head = list.next
+	if list.user != user {
 		return
-	} else if list.next == nil {
+	}
+
+	if list == c.channel[channel].head {
+		if list.next != nil {
+			c.channel[channel].head = list.next
+		}
+		return
+	}
+	if list.next == nil {
 		list.previous.next = nil
 		return
 	} else {
 		list.previous.next = list.next
-		list.next.previous = list.previous.previous
+		list.next.previous = list.previous
 	}
 
 }

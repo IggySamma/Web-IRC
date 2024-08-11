@@ -38,16 +38,81 @@
             </div>
 
             <div class="channels" id="channels">
-                <form id="channelsForm" class="position-relative" autocomplete="off" data-lpignore="true">
-
-                </form>
+                <div class="channelForm">
+                    <div id="channelHeader">
+                        <h2 class="m-2">Channels:</h2>
+                        <!--<button type="button" id="createChannel" class="btn btn-secondary m-2" onclick="toggleCreate()">Create own channel</button>-->
+                    </div>
+                    <hr>
+                    <form id="createNewChannel" autocomplete="off" data-lpignore="true">
+                        <label>Channel Name:</label>
+                        <input type="text" class="form-control" id="newChannelName" placeholder="Channel Name">
+                        <label>Channel Password:</label>
+                        <input type="password" class="form-control" id="newChannelPassword" placeholder="Leave blank to make global channel">
+                    </form>
+                    <form id="channelsForm" autocomplete="off" data-lpignore="true"></form>
+                </div>
             </div>
 
             <div class="modal fade" id="modalView">
                 <div class="modal-dialog modal-fullscreen">
                     <div class="modal-content">
+
+                        <div class="offcanvas offcanvas-start" tabindex="-1" id="chatSidebar">
+                            <div class="offcanvas-header">
+                                <h2 class="m-2">Options:</h2>
+                            </div>
+                            <hr>
+                            <div class="offcanvas-body m-0">
+                                <ul class="list-unstyled m-2">
+                                    <li class="mb-1">
+                                        <button class="btn btn-toggle d-inline-flex align-items-center rounded" data-bs-toggle="collapse" data-bs-target="#chatUserPermissions">Chat options</button>
+                                    </li>
+                                    <div class="collapse m-2" id="chatUserPermissions">
+                                        <ul class="btn-toggle-nav list-unstyled pb-1" id="chatUserPermissionsList">
+                                            <p>Select option then select user from below list:</p>
+                                            <hr>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" value="/Escalate:" onclick="insertOption('/Escalate:')">Escalate</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" value="/Kick:" onclick="insertOption('/Kick:')">Kick</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" value="/Silence:" onclick="insertOption('/Silence:')">Silence</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" value="/Ban:" onclick="insertOption('/Ban:')">Ban</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" value="/ShadowBan:" onclick="insertOption('/ShadowBan:')">Shadow Ban</button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <li class="mb-1">
+                                        <button class="btn btn-toggle d-inline-flex align-items-center rounded" data-bs-toggle="collapse" data-bs-target="#chatUserList">Active Users list</button>
+                                    </li>
+                                    <div class="collapse m-2" id="chatUserList">
+                                        <ul class="btn-toggle-nav list-unstyled pb-1" id="ulUserList">
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" data-bs-toggle="offcanvas" data-bs-target="#chatSidebar" value="User 1" onclick="insertOption('User 1')">User 1</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" data-bs-toggle="offcanvas" data-bs-target="#chatSidebar" value="User 2" onclick="insertOption('User 2')">User 2</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-toggle d-inline-flex align-items-center rounded" data-bs-toggle="offcanvas" data-bs-target="#chatSidebar" value="User 3" onclick="insertOption('User 3')">User 3</button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </ul>
+                            </div>
+                        </div>
+
                         <form id="liveChat" class="position-relative" autocomplete="off" data-lpignore="true">
-                            <div class="modal-header">
+                            <div class="modal-header m-0 pb-0">
+                                <button type="button" id="liveChatOptions" class="btn btn-secondary m-0" data-bs-toggle="offcanvas" data-bs-target="#chatSidebar" onclick="getUsers()">Options</button>
+                                <h2 class="m-2" id="channelName"></h2>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" id="closeBtn"></button>
                             </div>
                             <div class="modal-body">
@@ -55,17 +120,16 @@
                                     <div class="card" id="chat"></div>
                                 </div>
                                 <div class="input-group mt-2 mp-2">
-                                    <!--<textarea class="form-control" id="message"></textarea>-->
-                                    <input type="text" class="form-control" id="message" placeholder="Enter message and press enter" data-bs-placement="top" data-bs-container="modal-body" data-bs-content="This popover is themed via CSS variables.">
-                                    <!--<span class="input-group-text">
-                                        <button type="submit" class="btn btn-primary" id="send">Send</button>
-                                    </span>-->
+                                    <input type="text" class="form-control" id="message" placeholder="Enter message and press enter" data-bs-placement="top" data-bs-container="modal-body" data-bs-content=".">
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="FreeDomainShare">
+            <a href="https://freedns.afraid.org/" target="_blank">Free DNS Provider</a>
         </div>
     </body>
     <script src="./js/websocket.js"></script>

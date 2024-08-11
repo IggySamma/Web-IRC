@@ -19,6 +19,13 @@ const entry = document.getElementById("entry");
 const entryError = document.getElementById("error");
 const getModal = document.getElementById("modalView");
 const channelForm = document.getElementById("channelsForm");
+const createChannel = document.forms["createNewChannel"]
+let optionsButtons = document.querySelectorAll("#optionsBtn");
+let chatOptions;
+const userList = new bootstrap.Collapse('#chatUserList', {
+    toggle: false
+})
+const ulUserList = document.getElementById("ulUserList")
 
 chat.addEventListener("scroll", () => { popupTrigger() } );
 
@@ -28,7 +35,15 @@ function insert(type = "div", attributes = {}, classes = "message", message, isU
     for (let key in attributes){
         element.setAttribute(key, attributes[key])
     };
-    if (isUser) {
+
+    if (message.startsWith("Users:")) {
+        let users = message.slice(6);
+        element.innerText = users;
+        let li = document.createElement('li')
+        li.appendChild(element);
+        ulUserList.appendChild(li)
+        return
+    } else if(isUser) {
         element.innerText = "---> " + message;
     } else {
         element.innerText = message;
@@ -37,7 +52,7 @@ function insert(type = "div", attributes = {}, classes = "message", message, isU
     if(message.startsWith("Channel:")){
         element.innerText = message.slice(9);
         channelForm.appendChild(element);
-    } else if(message){
+    } else if (message){
         let chat = document.getElementById("chat");
         chat.appendChild(element);
     };
@@ -56,10 +71,13 @@ function popupTrigger(){
 chatForm.addEventListener("submit", (event) => {
     event.preventDefault(); 
     let message = document.getElementById("message");
-    if(previous.includes("Enter password")){
-        socket.send("/Password:/Channel:" + message.value + ":" + jchannel)
-    } else {
-        socket.send("/Channel:" + jchannel + ":" + message.value);
+    console.log(message.value.trim() !== 0)
+    if (message.value.trim().length !== 0) {
+        if(previous.includes("Enter password")){
+            socket.send("/Password:/Channel:" + message.value + ":" + jchannel)
+        } else {
+            socket.send("/Channel:" + jchannel + ":" + message.value);
+        }
     }
     message.value = "";
 });
@@ -91,17 +109,23 @@ getModal.addEventListener('shown.bs.modal', () => {
 });
 
 getModal.addEventListener('hide.bs.modal', () => {   
-    if (entry.style.display === 'none'){
+    /*if (entry.style.display === 'none'){
         entry.style.display = 'block';
-    };
+    };*/
+    hideBlock(channel, "show");
+    socket.send("/Disconnect:" + jchannel)
     clearChat();
 });
+
+window.addEventListener("onbeforeunload", () => {
+    socket.send("/Disconnect:" + jchannel)
+})
 
 function insertChannels(channels){
     for(let i = 0; i < channels.length; i++){
         insert("button", {"id": "channelButton"} ,"btn btn-primary m-2", "Channel: " + channels[i], false);
     }
-    let buttons = document.querySelectorAll('button.btn');
+    let buttons = document.querySelectorAll('#channelButton');
     for(let i = 0; i < buttons.length; i++){
         buttons[i].addEventListener("click", (event) => {
             event.preventDefault();
@@ -111,8 +135,9 @@ function insertChannels(channels){
     };
 };
 
+
 function clearChannels(){
-    let buttons = document.querySelectorAll('button.btn');
+    let buttons = document.querySelectorAll('#channelButton');
     buttons.forEach(button => {
         button.remove();
     });
@@ -121,6 +146,35 @@ function clearChannels(){
 function clearChat(){
     let chat = document.querySelectorAll('p')
     chat.forEach(line => {
-        line.remove();
+        if(line.id != "errorMessage"){
+            line.remove();
+        }
     });
 };
+
+function insertOption(option){
+    console.log(option);
+    if (option.startsWith("/")){
+        chatOptions = option;
+        getUsers()
+        userList.show();
+    } else {
+        chatOptions = chatOptions + "Channel:" + jchannel + ":" + option;
+        socket.send(chatOptions);
+        chatOptions = "";
+    }
+}
+
+function toggleCreate(){
+    hideBlock(channelForm,"hide")
+    hideBlock(createChannel, "show")
+}
+
+createChannel.addEventListener("submit", (event) => {
+    event.preventDefault();
+    let newChannelName = document.getElementById("newChannelName");
+    let newChannelPass = document.getElementById("newChannelPassword");
+    socket.send("/Create:" + newChannelName + ":" + newChannelPass);
+    hideBlock(channelForm,"show")
+    hideBlock(createChannel, "hide")
+})

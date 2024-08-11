@@ -244,3 +244,19 @@ Day 16:
     Need to make modal close be channels list instead of username login as wont allow use to use /Username to update to the same since name already exists.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
+
+Day 17:
+
+    Last day:
+        Updated ui added sidebar.
+        Pulls active users in chat.
+        Got domain.
+        Going to cross-compile to raspberry pie to host.
+        Will port forward pie.
+    
+    Remarks:
+        Most features other than core features not working.
+        Ran out of time.
+        Average coding time 2 hours per day.
+
+-   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -

@@ -30,13 +30,27 @@ function messageHandler(message){
     } else if (message.startsWith("Joined")) {
         jchannel = message.slice(7)
         hideBlock(channel, "hide")
+        receiveMessage(message)
+        document.getElementById("channelName").innerText = jchannel;
         modal.show();
+    } else if (message.startsWith("Users:")){
+        let users = message.slice(6);
+        users = users.split(",");
+        for(let i = 0; i < users.length; i++){
+            insert("button", 
+                {"data-bs-toggle":"offcanvas", "data-bs-target":"#chatSidebar","value": users[i],"onclick":"insertOption('"+  users[i] + "')"},
+                "btn btn-toggle d-inline-flex align-items-center rounded",
+                "Users:" + users[i],
+                false
+            )
+        }
     } else {
         receiveMessage(message)
     }
 }
 
 function errorHandler(message){
+    console.log(entryError.childNodes[1])
     if (message.startsWith("Username Error:")){
         entryError.childNodes[1].innerText = message;
         entryError.style.display = "block";
@@ -60,4 +74,12 @@ function receiveMessage(message){
         insert("p",{},"",message, isUser(message))
         popupTrigger();
     }
+}
+
+function getUsers(){
+    for(let i = ulUserList.childNodes.length -1; i > 0; i--){
+        console.log(ulUserList.childNodes[i])
+        ulUserList.childNodes[i].remove()
+    }
+    socket.send("/Users:Channel:" + jchannel)
 }
