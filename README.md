@@ -256,7 +256,7 @@ Day 17:
     
     Remarks:
         Most features other than core features not working.
-        Ran out of time.
+        Wish I had more time to properly do this project.
         Average coding time 2 hours per day.
 
 -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -   -
